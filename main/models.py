@@ -1,11 +1,14 @@
 from django.db import models
 
+from config import settings
+from users.models import User
 
 NULLABLE = {"blank": True, "null": True}
 
 
 class Habit(models.Model):
-    user = models.CharField(verbose_name="Пользователь")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                              verbose_name="Пользователь")
     place = models.CharField(max_length=100, verbose_name="Место")
     time = models.TimeField(verbose_name="Время")
     action = models.CharField(max_length=100, verbose_name="Действие")

@@ -138,6 +138,11 @@ AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
 CORS_ALLOWED_ORIGINS = [
     "https://read-only.example.com",
     "https://read-and-write.example.com",
@@ -180,10 +185,6 @@ CELERY_BEAT_SCHEDULE = {
     "send_notification": {
         "task": "habit.tasks.tg_notification",
         "schedule": timedelta(seconds=30),
-        "kwargs": {
-            "chat_id": "chat_id",
-            "message": "message",
-        }
     },
 }
 

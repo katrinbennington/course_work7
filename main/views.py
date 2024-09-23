@@ -4,24 +4,23 @@ from rest_framework.generics import (CreateAPIView,
                                      RetrieveAPIView,
                                      DestroyAPIView,
                                      UpdateAPIView)
+from rest_framework.permissions import AllowAny
 
 from main.models import Habit
 from main.paginators import HabitPaginator
-from main.permissions import IsAutor
+from main.permissions import IsAuthor
 from main.serializers import HabitSerializer
 
 
 class HabitCreateAPIView(CreateAPIView):
     """ Создание привычки """
-
-    serializer_class = HabitSerializer
     queryset = Habit.objects.all()
+    serializer_class = HabitSerializer
+    permission_classes = [AllowAny]
 
     # Функция привязывает автора к его привычке
     def perform_create(self, serializer):
-        new_habit = serializer.save()
-        new_habit.user = self.request.user
-        new_habit.save()
+        serializer.save(owner=self.request.user)
 
 
 class HabitRetrieveAPIView(RetrieveAPIView):
@@ -29,7 +28,8 @@ class HabitRetrieveAPIView(RetrieveAPIView):
 
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
-    permission_classes = [IsAutor]
+    pagination_class = HabitPaginator
+    permission_classes = [IsAuthor]
 
     def get_object(self):
         pk = self.kwargs.get('pk')
@@ -40,7 +40,8 @@ class HabitUpdateAPIView(UpdateAPIView):
     """ Редактирование привычки """
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
-    permission_classes = [IsAutor]
+    pagination_class = HabitPaginator
+    permission_classes = [IsAuthor]
 
 
 class HabitDestroyAPIView(DestroyAPIView):
@@ -48,7 +49,13 @@ class HabitDestroyAPIView(DestroyAPIView):
 
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
-    permission_classes = [IsAutor]
+    permission_classes = [IsAuthor]
+
+    def get_queryset(self):
+        if IsAuthor().has_permission(self.request, self):
+            return Habit.objects.all()
+        else:
+            return Habit.objects.filter(owner=self.request.user)
 
 
 class HabitListAPIView(ListAPIView):
@@ -57,7 +64,7 @@ class HabitListAPIView(ListAPIView):
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     pagination_class = HabitPaginator
-    permission_classes = [IsAutor]
+    permission_classes = [IsAuthor]
 
 
 class HabitPublicAPIView(ListAPIView):
