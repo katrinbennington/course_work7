@@ -7,7 +7,7 @@ NULLABLE = {"blank": True, "null": True}
 
 
 class Habit(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                               verbose_name="Пользователь")
     place = models.CharField(max_length=100, verbose_name="Место")
     time = models.TimeField(verbose_name="Время")
@@ -19,6 +19,7 @@ class Habit(models.Model):
                                  choices=(('daily', 'раз в день'),
                                           ('weekly', 'раз в неделю'),
                                           ('monthly', 'раз в месяц')))
+    frequency_in_days = models.SmallIntegerField(null=True, blank=True,verbose_name="Количество раз")
     reward = models.CharField(max_length=100, verbose_name="Вознаграждение", **NULLABLE)
     time_doing = models.DurationField(max_length=2, verbose_name="Время на выполнение")
     is_public = models.BooleanField(default=False, verbose_name="Признак публичности")

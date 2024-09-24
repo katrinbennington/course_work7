@@ -8,6 +8,6 @@ app_name = UsersConfig.name
 
 urlpatterns = [
     path("register/", UserViewSet.as_view({'post': 'create'}), name="register"),
-    path("login/", TokenObtainPairView.as_view(permission_classes=(AllowAny,)), name="login",),
-    path("token/refresh/", TokenRefreshView.as_view(permission_classes=(AllowAny,)), name="token_refresh",),
-    ]
+    path("login/", TokenObtainPairView.as_view(permission_classes=(AllowAny,)), name="login", ),
+    path("token/refresh/", TokenRefreshView.as_view(permission_classes=(AllowAny,)), name="token_refresh", ),
+]

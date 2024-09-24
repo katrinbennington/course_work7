@@ -1,8 +1,8 @@
 from rest_framework.permissions import BasePermission
 
 
-class IsAuthor(BasePermission):
-    """ Класс проверка на автора """
+class IsOwner(BasePermission):
+    """Проверяет, является ли пользователь создателем привычки."""
 
     def has_object_permission(self, request, view, obj):
-        return obj.owner == request.user
+        return obj.user == request.user

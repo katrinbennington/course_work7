@@ -1,26 +1,34 @@
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import (CreateAPIView,
                                      ListAPIView,
                                      RetrieveAPIView,
                                      DestroyAPIView,
                                      UpdateAPIView)
-from rest_framework.permissions import AllowAny
 
 from main.models import Habit
 from main.paginators import HabitPaginator
-from main.permissions import IsAuthor
 from main.serializers import HabitSerializer
+from main.permissions import IsOwner
 
 
 class HabitCreateAPIView(CreateAPIView):
     """ Создание привычки """
-    queryset = Habit.objects.all()
     serializer_class = HabitSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, IsOwner]
+    pagination_class = HabitPaginator
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ("action",)
+    ordering_fields = ("time",)
 
-    # Функция привязывает автора к его привычке
+    def get_queryset(self):
+        return Habit.objects.filter(user=self.request.user.pk).order_by("id")
+
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        new_habit = serializer.save()
+        new_habit.user = self.request.user
+        new_habit.save()
 
 
 class HabitRetrieveAPIView(RetrieveAPIView):
@@ -29,7 +37,6 @@ class HabitRetrieveAPIView(RetrieveAPIView):
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     pagination_class = HabitPaginator
-    permission_classes = [IsAuthor]
 
     def get_object(self):
         pk = self.kwargs.get('pk')
@@ -41,7 +48,6 @@ class HabitUpdateAPIView(UpdateAPIView):
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     pagination_class = HabitPaginator
-    permission_classes = [IsAuthor]
 
 
 class HabitDestroyAPIView(DestroyAPIView):
@@ -49,13 +55,6 @@ class HabitDestroyAPIView(DestroyAPIView):
 
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
-    permission_classes = [IsAuthor]
-
-    def get_queryset(self):
-        if IsAuthor().has_permission(self.request, self):
-            return Habit.objects.all()
-        else:
-            return Habit.objects.filter(owner=self.request.user)
 
 
 class HabitListAPIView(ListAPIView):
@@ -64,7 +63,6 @@ class HabitListAPIView(ListAPIView):
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     pagination_class = HabitPaginator
-    permission_classes = [IsAuthor]
 
 
 class HabitPublicAPIView(ListAPIView):
@@ -72,6 +70,4 @@ class HabitPublicAPIView(ListAPIView):
 
     serializer_class = HabitSerializer
     queryset = Habit.objects.filter(is_public=True)
-
-
-
+    permission_classes = [AllowAny]

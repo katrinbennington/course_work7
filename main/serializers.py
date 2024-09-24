@@ -1,42 +1,23 @@
-from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from main.models import Habit
-from main.validators import (HabitsDurationValidator, HabitsPeriodicValidator)
+from main.validators import (
+    RewardHabitValidator,
+    RelatedHabitValidator,
+    DurationTimeHabitValidator,
+    PleasentHabitValidator,
+    RegularityHabitValidator,
+)
 
 
-class HabitSerializer(serializers.ModelSerializer):
-    validators = [HabitsDurationValidator(field="duration"), HabitsPeriodicValidator(field="periodicity")]
-
+class HabitSerializer(ModelSerializer):
     class Meta:
         model = Habit
         fields = "__all__"
-        # validators = [HabitsValidator]
-
-    def validate(self, data):
-        """
-        У приятной привычки не может быть вознаграждения или связанной привычки. Исключить одновременный выбор
-        связанной привычки и указания вознаграждения. В модели не должно быть заполнено одновременно и поле
-        вознаграждения, и поле связанной привычки. Можно заполнить только одно из двух полей.
-        """
-
-        if data.get("associated_habit") and data.get("reward"):
-            raise serializers.ValidationError("Может быть либо связанная привычка либо вознаграждение,")
-
-        if data.get("is_pleasent"):
-            if data.get("associated_habit") or data.get("reward"):
-                raise serializers.ValidationError("У приятной привычки не может быть связанной привычки или "
-                                                  "вознаграждения")
-
-        # В связанные привычки могут попадать только привычки с признаком приятной привычки.
-        if data.get("associated_habit") and (not data.get("associated_habit").is_pleasent):
-            raise serializers.ValidationError("Связанные привычки = приятные привычки")
-
-        # Хотя бы один день в неделю
-        if (data.get("sunday") is False and data.get("monday") is False and data.get("tuesday") is False
-                and data.get("thursday") is False and data.get("friday") is False and data.get("saturday") is False
-                and data.get("wednesday") is False):
-            raise serializers.ValidationError("Хотя бы один день в неделю должен быть выбран!")
-
-        return data
-
-
+        validators = [
+            RewardHabitValidator(field1="reward", field2="associated_habit"),
+            RelatedHabitValidator(field="associated_habit"),
+            DurationTimeHabitValidator(field="time_doing"),
+            PleasentHabitValidator(field="is_pleasent"),
+            RegularityHabitValidator(field="frequency_in_days"),
+        ]
