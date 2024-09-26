@@ -186,8 +186,8 @@ CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BEAT_SCHEDULE = {
-    "send_notification": {
-        "task": "habit.tasks.tg_notification",
+    "tg_notification": {
+        "task": "main.tasks.tg_notification",
         "schedule": timedelta(seconds=30),
     },
 }

@@ -1,23 +1,17 @@
 from datetime import timedelta, datetime
 from celery import shared_task
-from timezone_field.backends import pytz
+from django.utils import timezone
 
-from config import settings
 from main.models import Habit
 from main.services import send_tg_message
 
 
 @shared_task()
 def tg_notification():
-    zone = pytz.timezone(settings.CELERY_TIMEZONE)
-    now = datetime.now(zone)
-
-    habits = Habit.objects.all()
-    print(f"Найдено привычек: {habits.count()}")
-
+    current_time = timezone.now()
+    current_time_less = current_time - timedelta(minutes=5)
+    habits = Habit.objects.filter(time__lte=current_time.time(), time__gte=current_time_less.time())
     for habit in habits:
         user_tg = habit.user.tg_chat_id
-        print(f"Текущее время: {now} {habit.time} {now + timedelta(minutes=10)}")
-        if user_tg and now < habit.time < now + timedelta(minutes=10):
-            message = f"я буду {habit.action} в {habit.time} в {habit.place}"
-            send_tg_message(user_tg, message)
+        message = f"я буду {habit.action} в {habit.time} в {habit.place}"
+        send_tg_message(user_tg, message)
