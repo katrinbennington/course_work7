@@ -12,6 +12,7 @@ Redis (for Celery broker and result backend)
 Telegram Bot API
 
 **Установка**:
+
 1.
 Клонируйте репозиторий:
 git clone https://github.com/katrinbennington/course_work7.git
